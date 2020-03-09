@@ -1,0 +1,29 @@
+From nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04
+MAINTAINER Wang Rui <rwang@tong.edu.cn>
+
+RUN apt-get update && apt-get -y upgrade
+RUN apt-get install -y software-properties-common && add-apt-repository -y ppa:deadsnakes/ppa && apt-get update
+
+# Add ssh on port 22
+RUN apt-get install -y curl vim openssh-server net-tools
+RUN echo 'root:422' | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config && /etc/init.d/ssh restart
+
+# Add python 3.7 and pip
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+RUN apt-get install -y python3.7 python3-setuptools
+RUN python3.7 get-pip.py && rm get-pip.py
+# RUN rm /usr/bin/python && rm /usr/bin/pip
+RUN ln -s /usr/bin/python3.7 /usr/bin/python && ln -s /usr/bin/pip3 /usr/bin/pip
+
+# Add speech package which can be replaced by "requirements.txt"
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade torch torchvision torchaudio libsora numpy scipy seaborn sklearn SoundFile tqdm Pillow jieba fasttext audioread pandas matplotlib jupyterlab
+
+RUN mkdir /workspace
+
+RUN apt-get clean && apt-get autoclean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+EXPOSE 22 6006 8888
+CMD ["jupyter", "lab"]
+
+# Build Image: docker build -t speechlab:1.0 .

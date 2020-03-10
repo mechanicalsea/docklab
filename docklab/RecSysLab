@@ -1,0 +1,8 @@
+###########################################
+## Dockerfile for Recommendation Systems ##
+##             (recsyslab)               ##
+##               Proposed by Pang Yitong ##
+###########################################
+
+From nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04
+MAINTAINER Wang Rui <rwang@tong.edu.cn>

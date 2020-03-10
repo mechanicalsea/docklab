@@ -5,29 +5,29 @@ Dockerfile for groups
 
 ```yaml
 language:
-	- python
+  - python
 version:
-	python: 3.7.6
-	pip: 20.0.1
+  python: 3.7.6
+  pip: 20.0.1
 deeplearning framework:
-	torch: 1.4.0
-	tensorflow-gpu: 2.1.0
+  torch: 1.4.0
+  tensorflow-gpu: 2.1.0
 port:
-	ssh: 22
-	tensorboard: 6006
-	jupyter lab: 8888
+  ssh: 22
+  tensorboard: 6006
+  jupyter lab: 8888
 service:
-	ssh: root@ip -p port
-	jupyter lab: ip:port/?token=...
+  ssh: root@ip -p port
+  jupyter lab: ip:port/?token=...
 workdir:
-	- /workspace
+  - /workspace
 recommend pypi source:
-	- https://pypi.tuna.tsinghua.edu.cn/simple
+  - https://pypi.tuna.tsinghua.edu.cn/simple
 ssh:
-	default password: 422
+  default password: 422
 docker relative:
-	build: docker build -t speechlab .
-	run: docker run -d -p 9000:22 --gpus '"device=2"' speechlab
+  build: docker build -t speechlab .
+  run: docker run -d -p 9000:22 --gpus '"device=2"' speechlab
 ```
 
 ## WARNING

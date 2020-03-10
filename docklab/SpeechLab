@@ -6,17 +6,19 @@ RUN apt-get install -y software-properties-common && add-apt-repository -y ppa:d
 
 # Add ssh on port 22
 RUN apt-get install -y curl vim openssh-server net-tools
-RUN echo 'root:422' | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config && /etc/init.d/ssh restart
+RUN echo 'root:422' | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
+# && /etc/init.d/ssh restart
 
 # Add python 3.7 and pip
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-RUN apt-get install -y python3.7 python3-setuptools
+RUN apt-get install -y python3.7 python3-setuptools python3.7-dev
 RUN python3.7 get-pip.py && rm get-pip.py
-# RUN rm /usr/bin/python && rm /usr/bin/pip
 RUN ln -s /usr/bin/python3.7 /usr/bin/python && ln -s /usr/bin/pip3 /usr/bin/pip
 
 # Add speech package which can be replaced by "requirements.txt"
-RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade torch torchvision torchaudio libsora numpy scipy seaborn sklearn SoundFile tqdm Pillow jieba fasttext audioread pandas matplotlib jupyterlab
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade torch
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade torchvision torchaudio librosa numpy scipy seaborn scikit-learn SoundFile tqdm Pillow jieba fasttext audioread pandas matplotlib jupyterlab
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade tensorflow-gpu
 
 RUN mkdir /workspace
 
@@ -24,6 +26,7 @@ RUN apt-get clean && apt-get autoclean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace
 EXPOSE 22 6006 8888
-CMD ["jupyter", "lab"]
+CMD ["/bin/bash", "-c", "/etc/init.d/ssh restart && jupyter lab --ip=0.0.0.0 --allow-root --no-browser --port=8888"]
 
-# Build Image: docker build -t speechlab:1.0 .
+# Build Image (torch 5.9GB + tf 7.28GB): docker build -t speechlab .
+# Start Image: docker run -it -p 20022:22 -p 28888:8888 -p 26006:6006 --name rui_test --network net422 --gpus '"device=2"' speechlab

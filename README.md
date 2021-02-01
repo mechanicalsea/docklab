@@ -39,7 +39,7 @@ docker relative:
 
 ## Current Dockerfile
 
-Dockerfile: Speechlab-JupyterLab-Cuda10.0
+Dockerfile: [Speechlab-JupyterLab-Cuda10.0](./docklab/Speechlab-JupyterLab-Cuda10.0)
 
 - Nodejs 12.x
 - Jupyterlab + extension
@@ -60,7 +60,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN rm /etc/apt/sources.list.d/* && apt-get update && apt-get -y upgrade && apt-get install -y software-properties-common unzip zip wget git && add-apt-repository -y ppa:deadsnakes/ppa
 # Add ssh on port 22
 RUN apt-get update && apt-get install -y curl openssh-server net-tools iputils-ping
-RUN echo 'root:speechlab' | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
+RUN echo 'root:1' | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
 # Install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - && apt-get install -y nodejs && rm -rf /var/lib/apt/lists/*
 # Add python 3.7, pip, and library
@@ -70,20 +70,17 @@ RUN python3.7 get-pip.py && rm get-pip.py
 RUN rm /usr/bin/python && ln -s /usr/bin/python3.7 /usr/bin/python && ln -s /usr/bin/pip3 /usr/bin/pip
 RUN pip --no-cache-dir install -i https://pypi.tuna.tsinghua.edu.cn/simple h5py matplotlib numpy scipy sklearn pandas future
 # Install bazel
-ARG BAZEL_VERSION=3.1.0
-RUN mkdir /bazel && wget -O /bazel/installer.sh "https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh" && wget -O /bazel/LICENSE.txt "https://raw.githubusercontent.com/bazelbuild/bazel/master/LICENSE" && chmod +x /bazel/installer.sh && /bazel/installer.sh && rm -f /bazel/installer.sh
+RUN apt-get -y install openjdk-8-jdk && echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list && curl https://bazel.build/bazel-release.pub.gpg | apt-key add - && apt-get update && apt-get -y install bazel && apt-get -y upgrade bazel
 # Install jupyterlab
-RUN pip install --upgrade pip && pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade jupyterlab==2.2.0 ipywidgets plotly bokeh numexpr patsy ipython sympy nose jupyterlab-git jupyter-lsp && jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyterlab-drawio jupyterlab-plotly @bokeh/jupyter_bokeh @jupyterlab/git jupyterlab-spreadsheet @jupyterlab/toc @agoose77/jupyterlab-markup @krassowski/jupyterlab-lsp
+RUN pip install --upgrade pip && pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade jupyterlab==2.2.0 ipywidgets plotly bokeh numexpr patsy ipython sympy nose jupyterlab-git && jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyterlab-drawio jupyterlab-plotly @bokeh/jupyter_bokeh @jupyterlab/git jupyterlab-spreadsheet @jupyterlab/toc @agoose77/jupyterlab-markup
 # Install pytorch
-RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pip install torchaudio==0.5.1 torch==1.5.1+cu92 torchvision==0.6.1+cu92 -f https://download.pytorch.org/whl/torch_stable.html
-RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple librosa seaborn scikit-learn SoundFile sounddevice tqdm blockdiag pyyaml
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pip install torch==1.7.1+cu92 torchvision==0.8.2+cu92 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple librosa seaborn scikit-learn SoundFile sounddevice tqdm blockdiag pyyaml tensorboard thop gpustat
 # Read to go
 RUN mkdir /workspace && apt-get clean && apt-get autoclean && rm -rf /var/lib/apt/lists/*
 WORKDIR /workspace
 EXPOSE 22 6006 8888
 CMD ["/bin/bash", "-c", "/etc/init.d/ssh restart && jupyter lab --ip=0.0.0.0 --allow-root --no-browser --port=8888"]
-# Build Image (torch 7.23GB GB): docker build -t test .
-# Start Image: docker run -it --rm -p 20022:22 -p 28888:8888 -p 26006:6006 --name test --gpus '"device=1"' test
 ```
 
 ## WARNING

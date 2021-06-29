@@ -1,0 +1,27 @@
+From nvidia/cuda:10.2-devel-ubuntu18.04
+MAINTAINER Wang Rui <rwang@tong.edu.cn>
+ENV DEBIAN_FRONTEND=noninteractive
+RUN rm /etc/apt/sources.list.d/* && apt-get update && apt-get -y upgrade && apt-get install -y software-properties-common unzip zip wget git && add-apt-repository -y ppa:deadsnakes/ppa
+# Add ssh on port 22
+RUN apt-get update && apt-get install -y curl openssh-server net-tools iputils-ping cmake
+RUN echo 'root:1' | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
+# Install nodejs
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - && apt-get install -y nodejs && rm -rf /var/lib/apt/lists/*
+# Add python 3.8, pip, and library
+RUN apt-get update && apt-get install -y python3.8 python3-setuptools python3.8-dev libblas-dev libatlas-base-dev build-essential libssl-dev libffi-dev libxml2-dev libxslt1-dev zlib1g-dev libsndfile1-dev automake autoconf sox gfortran libtool subversion libsox-dev libsox-fmt-all openjdk-8-jdk virtualenv swig ffmpeg flac
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+RUN python3.8 get-pip.py && rm get-pip.py
+RUN rm /usr/bin/python && ln -s /usr/bin/python3.8 /usr/bin/python && ln -s /usr/bin/pip3 /usr/bin/pip
+RUN pip --no-cache-dir install h5py matplotlib numpy scipy sklearn pandas future
+# Install bazel
+RUN apt-get -y install openjdk-8-jdk && echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list && curl https://bazel.build/bazel-release.pub.gpg | apt-key add - && apt-get update && apt-get -y install bazel && apt-get -y upgrade bazel
+# Install jupyterlab
+RUN pip install --upgrade pip && pip install --upgrade jupyterlab ipywidgets plotly bokeh numexpr patsy ipython sympy nose jupyterlab-git && jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyterlab-drawio jupyterlab-plotly @bokeh/jupyter_bokeh @jupyterlab/git jupyterlab-spreadsheet @jupyterlab/toc @agoose77/jupyterlab-markup
+# Install pytorch
+RUN pip install pip install torch torchvision torchaudio
+RUN pip install librosa seaborn scikit-learn SoundFile sounddevice tqdm blockdiag pyyaml tensorboard thop gpustat
+# Read to go
+RUN mkdir /workspace && apt-get clean && apt-get autoclean && rm -rf /var/lib/apt/lists/*
+WORKDIR /workspace
+EXPOSE 22 6006 8888
+CMD ["/bin/bash", "-c", "/etc/init.d/ssh restart && jupyter lab --ip=0.0.0.0 --allow-root --no-browser --port=8888"]

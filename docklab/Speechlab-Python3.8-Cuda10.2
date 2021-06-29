@@ -16,7 +16,8 @@ RUN pip --no-cache-dir install h5py matplotlib numpy scipy sklearn pandas future
 # Install bazel
 RUN apt-get -y install openjdk-8-jdk && echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list && curl https://bazel.build/bazel-release.pub.gpg | apt-key add - && apt-get update && apt-get -y install bazel && apt-get -y upgrade bazel
 # Install jupyterlab
-RUN pip install --upgrade pip && pip install --upgrade jupyterlab ipywidgets plotly bokeh numexpr patsy ipython sympy nose jupyterlab-git && jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyterlab-drawio jupyterlab-plotly @bokeh/jupyter_bokeh @jupyterlab/git jupyterlab-spreadsheet @jupyterlab/toc @agoose77/jupyterlab-markup
+RUN pip install --upgrade pip && pip install --upgrade jupyterlab ipywidgets plotly bokeh numexpr patsy ipython sympy nose jupyterlab-git && jupyter labextension install @jupyter-widgets/jupyterlab-manager
+# jupyterlab-drawio jupyterlab-plotly @bokeh/jupyter_bokeh @jupyterlab/git jupyterlab-spreadsheet @jupyterlab/toc @agoose77/jupyterlab-markup
 # Install pytorch
 RUN pip install pip install torch torchvision torchaudio
 RUN pip install librosa seaborn scikit-learn SoundFile sounddevice tqdm blockdiag pyyaml tensorboard thop gpustat
@@ -25,3 +26,5 @@ RUN mkdir /workspace && apt-get clean && apt-get autoclean && rm -rf /var/lib/ap
 WORKDIR /workspace
 EXPOSE 22 6006 8888
 CMD ["/bin/bash", "-c", "/etc/init.d/ssh restart && jupyter lab --ip=0.0.0.0 --allow-root --no-browser --port=8888"]
+# Build Image (torch 8.5GB GB): docker build -t speechlab:python3.8-cuda10.2 .
+# Start Image: sudo docker run -d -p 20022:22 --name v-wangrui --gpus '"device=0,1,2,3"' --shm-size 8G -v /home/user/Downloads:/workspace/datasets -v /home/user/Projects:/workspace/projects speechlab:python3.8-cuda10.2
